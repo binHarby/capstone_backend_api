@@ -11,16 +11,10 @@ router = APIRouter(
 @router.post("/", status_code=status.HTTP_201_CREATED,response_model=schemas.UserRes)
 
 def create_users(new_user: schemas.UserCreate):
-    ### 1
-    ## Check if user in DB first, before creating a new account
-    ## query by email
-    ## if Non -> create
-    ## else raise exception
-    ### 2
-    ## setup login and JWT authentication
-    ### 3 
-    ## setup desieases_rules table and rules.py (imported to desis..py
-
+    cursor.execute('''SELECT * FROM users WHERE email=%s LIMIT 1''',(new_user.email,))
+    query=cursor.fetchone()
+    if query:
+        raise HTTPException(status_code=403, detail=f"account with email {new_user.email} already exists,try another email")
 
     if new_user.password == new_user.confpassword:
         new_user.password = utils.hash(new_user.password)
@@ -30,8 +24,8 @@ def create_users(new_user: schemas.UserCreate):
     bmi = utils.get_bmi(new_user.weight,new_user.height)
     tdee = utils.get_tdee(new_user.gender,new_user.weight,new_user.height,age,new_user.activity)
     tdee = tdee - new_user.cal_diff
-    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,weight,height,age, bmi,main_cals,cal_diff) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
-        new_user.bloodtype,new_user.weight,new_user.height,age,bmi,tdee,new_user.cal_diff))
+    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,weight,height,age, bmi,cal_goal,cal_diff,tdee,cal_current) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
+        new_user.bloodtype,new_user.weight,new_user.height,age,bmi,tdee-new_user.cal_diff,new_user.cal_diff,tdee,0))
     new_user=cursor.fetchone()
     conn.commit()
     return new_user

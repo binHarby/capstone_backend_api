@@ -13,12 +13,14 @@ class UserRes(UserBase):
     bloodtype: str
     weight: int
     height: float
-    cal_diff: int
     age: int
     bmi: int
-    main_cals: int
+    cal_goal: int
     cal_diff: int
+    cal_current: int
+    tdee: int
     created_at: datetime
+    updated_at: datetime
 class UserCreate(UserBase):
     password: str
     gender:str

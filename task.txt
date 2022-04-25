@@ -1,0 +1,69 @@
+## 1
+## make usr_res table
+### usr_res
+	- user_id (fk users,co-pk)
+	- res_id (fk res_rules, co-pk)
+	- rule 
+### res_rules
+	- res_id
+	- name 
+	- no_rules
+	- traces (boolean)
+	- mineeals (boolean)
+	- vitamins (boolean)
+	- macros (boolean) 
+	- desc (string)
+### res_prop:
+	- res_id
+	- comp_1
+	- comp_2
+	...
+	-comp_10
+	all comps nullable
+### usr_state_macros
+	- user_id (fk users,pk)
+	- fat_goal
+	- fat_cur
+	- protein_goal
+	- protein_cur
+	- carb_goal
+	- carb_curr
+	- sugar_goal
+	- sugar_cur
+	...
+### usr_state_minerals
+### usr_state_trace
+### usr_state_vitamins
+### usr_activities
+	- usr_id (fk, co-pk)
+	- name (co-pk)
+	- duration
+	- cals_burned
+	- timestamp
+
+### usr_meds
+	- usr_id (fk, co-pk)
+	- med_name (co-pk)
+	- res_name(fk)
+	- res_id(fk)
+	- daily_doses
+	- serving_quanity
+	- serving_quant_type
+	- daily_interval
+	- daily_interval_t_unit
+	- taken_curr_count
+	- last_taken
+	- created_at
+
+? recommendation engine??
+input (api_call_res,usr_res/1,)
+True True False True
+1     1     0    1
+"mineral-trace-gmacro"
+reson = dict[res_name: "res_props",..]
+ex_comp=list()
+for key,value user_res.iteritems():
+	if key.endwith("_curr"):
+		tmp = value+api_res[key[:-4]]
+		if tmp>user_res[key[:-4]+'goal']:
+			print("Not recommended")
