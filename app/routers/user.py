@@ -19,7 +19,7 @@ def create_users(new_user: schemas.UserCreate):
     if new_user.password == new_user.confpassword:
         new_user.password = utils.hash(new_user.password)
     else:
-        raise HTTPException(status_code=418, details=f"Input Passwords Mismatch")
+        raise HTTPException(status_code=418, detail=f"Input Passwords Mismatch")
     age = utils.get_age(new_user.birthday)
     bmi = utils.get_bmi(new_user.weight,new_user.height)
     tdee = utils.get_tdee(new_user.gender,new_user.weight,new_user.height,age,new_user.activity)
