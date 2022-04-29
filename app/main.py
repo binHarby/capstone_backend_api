@@ -12,6 +12,7 @@ conn,cursor=database.run()
 app = FastAPI()
 # change allow_origins to allow certain domians and not others
 # NOTE: we are not talking to any website, but native apps, so you can keep origins empty 
+# Allowing all CORS connections 
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
