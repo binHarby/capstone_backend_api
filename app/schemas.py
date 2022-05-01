@@ -41,4 +41,65 @@ class TokenData(BaseModel):
 class Vote(BaseModel):
     post_id: int
     dir: conint(le=1)
+# History Schemas
+## Food
+class GetFoodReq(BaseModel):
+    id: Optional[str]= None
+    frm: date
+    too: date
+class GetFoodRes(BaseModel):
 
+class PostFoodReq(BaseModel):
+
+class PostFoodRes(BaseModel):
+
+class UpdateFoodReq(BaseModel):
+
+class UpdateFoodRes(BaseModel):
+
+
+class DeleteFoodReq(BaseModel):
+
+class DeleteFoodRes(BaseModel):
+
+
+## Activties
+
+class GetActivitiesReq(BaseModel):
+    id: Optional[str]= None
+    frm: date
+    too: date
+class GetActivitiesRes(BaseModel):
+
+class PostActivitiesReq(BaseModel):
+
+class PostActivitiesRes(BaseModel):
+
+class UpdateActivitiesReq(BaseModel):
+
+class UpdateActivitiesRes(BaseModel):
+
+
+class DeleteActivitiesReq(BaseModel):
+
+class DeleteActivitiesRes(BaseModel):
+## Meds
+
+class GetMedsReq(BaseModel):
+    id: Optional[str]= None
+    frm: date
+    too: date
+class GetMedsRes(BaseModel):
+
+class PostMedsReq(BaseModel):
+
+class PostMedsRes(BaseModel):
+
+class UpdateMedsReq(BaseModel):
+
+class UpdateMedsRes(BaseModel):
+
+
+class DeleteMedsReq(BaseModel):
+
+class DeleteMedsRes(BaseModel):
