@@ -13,6 +13,8 @@ app = FastAPI()
 # change allow_origins to allow certain domians and not others
 # NOTE: we are not talking to any website, but native apps, so you can keep origins empty 
 # Allowing all CORS connections 
+# 1 
+## History/food history/meds routes& history/activities
 app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
