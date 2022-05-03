@@ -44,7 +44,7 @@ class Vote(BaseModel):
 # History Schemas
 ## Food
 class GetFoodReq(BaseModel):
-    id: Optional[str]= None
+    id: Optional[int]
     frm: date
     too: date
 class GetFoodRes(BaseModel):
@@ -66,7 +66,7 @@ class DeleteFoodRes(BaseModel):
 ## Activties
 
 class GetActivitiesReq(BaseModel):
-    id: Optional[str]= None
+    id: Optional[int]
     frm: date
     too: date
 class GetActivitiesRes(BaseModel):
@@ -86,7 +86,7 @@ class DeleteActivitiesRes(BaseModel):
 ## Meds
 
 class GetMedsReq(BaseModel):
-    id: Optional[str]= None
+    id: Optional[int]
     frm: date
     too: date
 class GetMedsRes(BaseModel):
