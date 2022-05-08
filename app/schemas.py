@@ -274,3 +274,13 @@ class MineralsBase(BaseModel):
     potassium: Optional[int]
     iron: Optional[int]
     zinc: Optional[int]
+class PostGeneralGoal(BaseModel):
+    weight: int
+    activity_lvl: int
+    cal_diff: int =0
+    cal_goal: Optional[int]
+class UpdateGeneralGoal(BaseModel):
+    weight: int
+    activity_lvl: Optional[int]
+    cal_diff: Optional[int]
+    cal_goal: Optional[int]
