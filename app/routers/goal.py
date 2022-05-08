@@ -221,3 +221,53 @@ def get_res_details(res_ls: list):
         conn.commit()
     return res_ls 
 
+@router.put("/x",status_code=status.HTTP_201_CREATED) 
+def update_x_goals(get_current_user: int = Depends(oauth.get_current_user)):
+    # Update to respective tables
+    final_results=set_goal(get_current_user=get_current_user)
+    query_str,in_tup='',tuple()
+    if 'macros' in final_results.keys():
+        query_str,in_tup=utils.query_strs('update','user_goal_macros','user_id',get_current_user.id,obj=final_results['macros'])
+        try:
+            cursor.execute(query_str,in_tup)
+            final_results['macros']=cursor.fetchone()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise HTTPException(status_code=403, detail=f"Error Updating X")
+
+        
+    if 'minerals' in final_results.keys():
+        final_results['minerals']['user_id']=get_current_user.id
+        query_str,in_tup=utils.query_strs('update','user_goal_minerals','user_id',get_current_user.id,obj=final_results['minerals'])
+        try:
+            cursor.execute(query_str,in_tup)
+            final_results['minerals']=cursor.fetchone()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise HTTPException(status_code=403, detail=f"Error Updating X")
+    if 'vitamins' in final_results.keys():
+        final_results['vitamins']['user_id']=get_current_user.id
+        query_str,in_tup=utils.query_strs('update','user_goal_vitamins','user_id',get_current_user.id,obj=final_results['vitamins'])
+        try:
+            cursor.execute(query_str,in_tup)
+            final_results['vitamins']=cursor.fetchone()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise HTTPException(status_code=403, detail=f"Error Updating X")
+
+    if 'traces' in final_results.keys():
+        final_results['traces']['user_id']=get_current_user.id
+        query_str,in_tup=utils.query_strs('update','user_goal_traces','user_id',get_current_user.id,obj=final_results['traces'])
+        try:
+            cursor.execute(query_str,in_tup)
+            final_results['traces']=cursor.fetchone()
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise HTTPException(status_code=403, detail=f"Error Updating X")
+    return ORJSONResponse(final_results) 
+
+
