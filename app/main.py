@@ -2,7 +2,7 @@
 from fastapi import FastAPI,Response,status,HTTPException 
 from typing import List
 from . import schemas, utils, database
-from .routers import user,login,history,res
+from .routers import user,login,history,res,exapi
 from datetime import date,datetime
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -31,3 +31,4 @@ app.include_router(user.router)
 app.include_router(login.router)
 app.include_router(history.router)
 app.include_router(res.router)
+app.include_router(exapi.router)

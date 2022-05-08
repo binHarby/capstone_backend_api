@@ -12,14 +12,8 @@ class UserRes(UserBase):
     gender: str
     birthday: date 
     bloodtype: str
-    weight: int
     height: float
     age: int
-    bmi: int
-    cal_goal: int
-    cal_diff: int
-    cal_current: int
-    tdee: int
     created_at: datetime
     updated_at: datetime
 class UserCreate(UserBase):
@@ -28,24 +22,17 @@ class UserCreate(UserBase):
     confpassword: str
     birthday: str
     bloodtype: str
-    weight: int
     height: float
-    cal_diff: int=0
-    activity: int
     created_at: datetime=dt.datetime.now(dt.timezone.utc)
     updated_at: datetime=dt.datetime.now(dt.timezone.utc)
 class UserUpdate(BaseModel):
-    #id: Optional[int] 
     email: Optional[EmailStr]
     password: Optional[str]
     gender: Optional[str]
     confpassword: Optional[str]
     birthday: Optional[str]
     bloodtype: Optional[str]
-    weight: Optional[int]
     height: Optional[float]
-    cal_diff: Optional[int]
-    activity: Optional[int]
     updated_at: datetime=dt.datetime.now(dt.timezone.utc)
 
 class UserLogin(UserBase):
@@ -205,3 +192,85 @@ class GetRestReq(BaseModel):
             raise ValueError('Either alll xor [name/id] is required')
 
         return alll
+class PostUserRestReq(BaseModel):
+    # Need to account for a bulk insert at sign in
+    res_id: int
+    rule: int
+class DeleteUserRestReq(BaseModel):
+    user_res_id: int
+class UpdateUserRestReq(BaseModel):
+    user_res_id: int
+    rule: int
+
+class GetUserRestReq(BaseModel):
+    user_res_id: Optional[int]
+    alll: Optional[bool]
+    @validator('alll',always=True)
+    def check_name_or_alll(cls,alll,values):
+        if alll and values.get('user_res_id'):
+            raise ValueError('Either alll xor res_id is required')
+        if  not values.get('user_res_id') and not alll:
+            raise ValueError('Either alll xor res_id is required')
+
+        return alll
+
+## External APIs schemas
+# Names
+class ExapiNameReq(BaseModel):
+    name: str
+# UPC
+class ExapiUPCReq(BaseModel):
+    upc: str
+# common models between State and Goal route
+class MacrosBase(BaseModel):
+    carb: Optional[int]
+    sugar: Optional[int]
+    fructose: Optional[int]
+    lactose: Optional[int]
+    protein: Optional[int]
+    amino: Optional[int]
+    fat: Optional[int]
+    unsaturated: Optional[int]
+    monounsaturated: Optional[int]
+    polyunsaturated: Optional[int]
+    saturated: Optional[int]
+    fiber: Optional[int]
+    trans: Optional[int]
+class VitaminsBase(BaseModel):
+    b: Optional[int]
+    b_1: Optional[int]
+    b_2: Optional[int]
+    b_3: Optional[int]
+    b_8: Optional[int]
+    b_5: Optional[int]
+    b_6: Optional[int]
+    b_7: Optional[int]
+    b_12: Optional[int]
+    choline: Optional[int]
+    a: Optional[int]
+    c: Optional[int]
+    d: Optional[int]
+    d_2: Optional[int]
+    d_3: Optional[int]
+    k_1: Optional[int]
+    k_2: Optional[int]
+    k_3: Optional[int]
+    k: Optional[int]
+    e: Optional[int]
+class TracesBase(BaseModel):
+    boron: Optional[int]
+    copper: Optional[int]
+    selenium: Optional[int]
+    maganese: Optional[int]
+    fluorine: Optional[int]
+    chromium: Optional[int]
+    cobalt: Optional[int]
+    iodine: Optional[int]
+class MineralsBase(BaseModel):
+    calcium: Optional[int]
+    phosphorus: Optional[int]
+    magnesium: Optional[int]
+    sodium: Optional[int]
+    potassium: Optional[int]
+    iron: Optional[int]
+    zinc: Optional[int]

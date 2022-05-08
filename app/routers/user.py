@@ -3,6 +3,7 @@ from fastapi import FastAPI, Response, status, HTTPException, APIRouter, Depends
 from typing import List
 from .. import schemas, utils, database,oauth
 from psycopg2 import sql
+from fastapi.responses import ORJSONResponse
 conn,cursor=database.run()
 
 router = APIRouter(
@@ -21,14 +22,13 @@ def create_users(new_user: schemas.UserCreate):
     else:
         raise HTTPException(status_code=418, detail=f"Input Passwords Mismatch")
     age = utils.get_age(new_user.birthday)
-    bmi = utils.get_bmi(new_user.weight,new_user.height)
-    tdee = utils.get_tdee(new_user.gender,new_user.weight,new_user.height,age,new_user.activity)
-    tdee = tdee - new_user.cal_diff
-    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,weight,height,age, bmi,cal_goal,cal_diff,tdee,cal_current,created_at,updated_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
-        new_user.bloodtype,new_user.weight,new_user.height,age,bmi,tdee-new_user.cal_diff,new_user.cal_diff,tdee,0,new_user.created_at,new_user.updated_at))
+    #bmi = utils.get_bmi(new_user.weight,new_user.height)
+    #tdee = utils.get_tdee(new_user.gender,new_user.weight,new_user.height,age,new_user.activity)
+    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,height,age,created_at,updated_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
+        new_user.bloodtype,new_user.height,age,new_user.created_at,new_user.updated_at))
     new_user=cursor.fetchone()
     conn.commit()
-    return new_user
+    return ORJSONResponse(new_user)
 
 @router.get("/", status_code=status.HTTP_201_CREATED,response_model=List[schemas.UserRes])
 
@@ -37,7 +37,7 @@ def get_users(get_current_user: int = Depends(oauth.get_current_user)):
     cursor.execute('''SELECT * FROM users''')
     query=cursor.fetchall()
     if query:
-        return query
+        return ORJSONResponse(query)
     else:
         raise HTTPException(status_code=418, detail=f"no users exist")
 
@@ -92,7 +92,7 @@ def update_user(id: int , user_info: schemas.UserUpdate,get_current_user: int = 
     if result== None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} does not exist")
 
-    return result
+    return ORJSONResponse(result)
         
 
 
@@ -103,6 +103,6 @@ def get_user(get_current_user: int = Depends(oauth.get_current_user)):
     cursor.execute('''SELECT * FROM users WHERE id=%s''',(get_current_user.id,))
     query=cursor.fetchall()
     if query:
-        return query
+        return ORJSONResponse(query)
     else:
         raise HTTPException(status_code=418, detail=f"user doesn't exist any more?")

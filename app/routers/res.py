@@ -2,6 +2,7 @@
 from fastapi import FastAPI, Response, status, HTTPException, APIRouter, Depends
 from typing import List
 from .. import schemas, utils, database,oauth
+from fastapi.responses import ORJSONResponse
 conn,cursor=database.run()
 router = APIRouter(
         prefix='/res',
@@ -55,7 +56,7 @@ def post_rest(new_rest: schemas.PostRestReq, get_current_user: int = Depends(oau
         conn.commit()
         result['res_prop']=res_props
 
-    return result
+    return ORJSONResponse(result)
 
 @router.delete("/res_rules", status_code=status.HTTP_201_CREATED)
 def delete_rest(rest_info: schemas.DeleteRestReq, get_current_user: int = Depends(oauth.get_current_user)):
@@ -68,10 +69,11 @@ def delete_rest(rest_info: schemas.DeleteRestReq, get_current_user: int = Depend
     elif rest_info.name:
         rest_unq_col='name'
         rest_unq_val=str(rest_info.name)
-    query_str,in_tup=utils.query_strs('delete','res_rules',rest_unq_col,rest_unq_val,rest_info)
+    query_str,in_tup=utils.query_strs('delete','res_rules',rest_unq_col,rest_unq_val)
     cursor.execute(query_str,in_tup)
-    result=cursor.fetchone()
+    rest_info=cursor.fetchone()
     conn.commit()
+    return ORJSONResponse(rest_info)
 
 @router.put("/res_rules", status_code=status.HTTP_201_CREATED)
 
@@ -105,7 +107,7 @@ def update_rest(rest_info: schemas.UpdateRestReq, get_current_user: int = Depend
         conn.commit()
         result['res_prop']=nresult
 
-    return result
+    return ORJSONResponse(result)
 
 @router.get("/res_rules", status_code=status.HTTP_201_CREATED)
 
@@ -114,21 +116,76 @@ def get_rest(rest_info: schemas.GetRestReq, get_current_user: int = Depends(oaut
     in_tup=tuple()
     if rest_info.alll:
         query_str,in_tup=utils.query_strs('get','res_rules',get_all=True)
+        query_str+='''LEFT JOIN res_prop ON res_rules.id=res_prop.res_id '''
     else:
         rest_unq_col=''
         rest_unq_val=''
         rest_info=rest_info.dict(exclude_none=True)
         if 'id' in rest_info.keys():
             rest_unq_col='id'
-            rest_unq_val=str(rest_info['id'])
+            rest_unq_val=rest_info['id']
             rest_info['id']=None
         elif 'name' in rest_info.keys():
             rest_unq_col='name'
             rest_unq_val=str(rest_info['name'])
-        query_str,in_tup=utils.query_strs('get','res_rules',rest_unq_col,rest_unq_val)
-    print(query_str)
-    print(in_tup)
+        query_str='''SELECT * FROM res_rules LEFT JOIN res_prop ON res_rules.id=res_prop.res_id '''
+        query_str+=f'''WHERE {rest_unq_col}=%s '''
+        in_tup=(rest_unq_val,)
     cursor.execute(query_str,in_tup)
     result=cursor.fetchall()
     conn.commit()
-    return result
+    return ORJSONResponse(result)
+## user_res
+
+@router.post("/user_res", status_code=status.HTTP_201_CREATED)
+
+def post_user_rest(rest_info: schemas.PostUserRestReq, get_current_user: int = Depends(oauth.get_current_user)):
+    rest_info=rest_info.dict(exclude_none=True)
+    rest_info['user_id']=get_current_user.id
+    query_str,in_tup=utils.query_strs('insert','user_res',obj=rest_info)
+    print(query_str)
+    print(in_tup)
+    cursor.execute(query_str,in_tup)
+    rest_info=cursor.fetchone()
+    conn.commit()
+    return ORJSONResponse(rest_info)
+    
+@router.put("/user_res", status_code=status.HTTP_201_CREATED)
+def put_user_rest(rest_info: schemas.UpdateUserRestReq, get_current_user: int = Depends(oauth.get_current_user)):
+    rest_unq_col='user_res_id'
+    rest_unq_val=rest_info.user_res_id
+    rest_info=rest_info.dict(exclude_none=True)
+    rest_info.pop('user_res_id')
+    query_str,in_tup=utils.query_strs('update','user_res',rest_unq_col,rest_unq_val,rest_info)
+    print(query_str)
+    print(in_tup)
+    cursor.execute(query_str,in_tup)
+    rest_info=cursor.fetchone()
+    conn.commit()
+    return ORJSONResponse(rest_info)
+
+
+@router.delete("/user_res", status_code=status.HTTP_201_CREATED)
+def delete_user_rest(rest_info: schemas.DeleteUserRestReq, get_current_user: int = Depends(oauth.get_current_user)):
+    query_str,in_tup=utils.query_strs('delete','user_res','user_res_id',rest_info.user_res_id)
+    print(query_str)
+    print(in_tup)
+    cursor.execute(query_str,in_tup)
+    rest_info=cursor.fetchone()
+    conn.commit()
+    return ORJSONResponse(rest_info)
+@router.get("/user_res", status_code=status.HTTP_201_CREATED)
+def get_user_rest(rest_info: schemas.GetUserRestReq, get_current_user: int = Depends(oauth.get_current_user)):
+    rest_unq_col='user_res_id'
+    rest_unq_val=rest_info.user_res_id
+    if rest_info.alll:
+        query_str,in_tup=utils.query_strs('get','user_res',get_all=True)
+        query_str+=f"WHERE user_id=%s"
+        in_tup=(get_current_user.id,)
+    else:
+        query_str,in_tup=utils.query_strs('get','user_res','user_res_id',rest_info.user_res_id)
+    cursor.execute(query_str,in_tup)
+    rest_info=cursor.fetchall()
+    conn.commit()
+    return ORJSONResponse(rest_info)
+
