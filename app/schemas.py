@@ -284,3 +284,16 @@ class UpdateGeneralGoal(BaseModel):
     activity_lvl: Optional[int]
     cal_diff: Optional[int]
     cal_goal: Optional[int]
+class GeneralState(BaseModel):
+    day: datetime=dt.datetime.now(dt.timezone.utc) 
+    calories_consumed: Optional[int]=0
+class MedsBase(BaseModel):
+    updated_at: datetime=dt.datetime.now(dt.timezone.utc) 
+    doses_taken: Optional[int]=0
+    med_id: int
+class StateX(BaseModel):
+    macros: Optional[MacrosBase]
+    traces: Optional[TracesBase]
+    vitamins: Optional[VitaminsBase]
+    minerals: Optional[MineralsBase]
+    meds: Optional[MedsBase]

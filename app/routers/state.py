@@ -48,5 +48,7 @@ def update_user_state_general(general_state_info: dict,get_current_user: int = D
     result=cursor.fetchall()
     conn.commit()
     return result
-#@router.put("/x",status_code=status.HTTP_201_CREATED)
-#@router.post("/x",status_code=status.HTTP_201_CREATED)
+@router.put("/x",status_code=status.HTTP_201_CREATED)
+@router.post("/x",status_code=status.HTTP_201_CREATED)
+def user_state_x(x_state_info: schemas.StateX, get_current_user: int = Depends(oauth.get_current_user)):
+    return x_state_info
