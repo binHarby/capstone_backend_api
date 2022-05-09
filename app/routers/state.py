@@ -11,6 +11,7 @@ conn,cursor=database.run()
 router = APIRouter(
         prefix='/state',
         tags=['User State'])
+@router.put("/",status_code=status.HTTP_201_CREATED)
 @router.post("/",status_code=status.HTTP_201_CREATED)
 def user_state_general(general_state_info: schemas.GeneralState,get_current_user: int = Depends(oauth.get_current_user)):
     # Check if state of today exists
@@ -18,13 +19,16 @@ def user_state_general(general_state_info: schemas.GeneralState,get_current_user
     cursor.execute('''SELECT * FROM user_state_general WHERE user_id=%s ORDER BY state_id DESC LIMIT 1''',(get_current_user.id,))
     result=cursor.fetchone()
     # Choose to post or put/patch
-    if result['day']<today:
-        post_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
+    if result:
+        if result['day']<today:
+            result=post_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
+        else:
+            general_state_info=general_state_info.dict(exclude_none=True)
+            general_state_info['state_id']=result['state_id']
+            result=update_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
     else:
-        general_state_info=general_state_info.dict(exclude_none=True)
-        general_state_info['state_id']=result['state_id']
-        update_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
-    return general_state_info
+        result=post_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
+    return result
 def post_user_state_general(general_state_info: schemas.GeneralState,get_current_user: int = Depends(oauth.get_current_user)):
     query_str,in_tup='',tuple()
     general_state_info=general_state_info.dict(exclude_none=True) 
@@ -44,3 +48,5 @@ def update_user_state_general(general_state_info: dict,get_current_user: int = D
     result=cursor.fetchall()
     conn.commit()
     return result
+#@router.put("/x",status_code=status.HTTP_201_CREATED)
+#@router.post("/x",status_code=status.HTTP_201_CREATED)
