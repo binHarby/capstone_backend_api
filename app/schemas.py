@@ -292,6 +292,7 @@ class MedsBase(BaseModel):
     doses_taken: Optional[int]=0
     med_id: int
 class StateX(BaseModel):
+    day: datetime=dt.datetime.now(dt.timezone.utc) 
     macros: Optional[MacrosBase]
     traces: Optional[TracesBase]
     vitamins: Optional[VitaminsBase]
