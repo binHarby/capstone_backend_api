@@ -98,16 +98,17 @@ def user_state_an_x(state_id: int,x_state_info: schemas.StateX,tablename: str,op
             if op=='sum':
                 sum_macros=dict(old_macros+new_macros)
             else:
-                sum_macros=subtract_dicts()
                 #consume = deque(maxlen=0).extend
                 #consume(old_macros.pop(key, None) for key in new_macros) 
                 #sum_macros=old_macros
                 #sum_macros=dict(set(old_macros.items()) - set(new_macros.items()))
+                sum_macros=subtract_dicts(old_macros,new_macros)
                 print(sum_macros)
-            query_str,in_tup=utils.query_strs('update',f'user_state_{tablename}','state_id',state_id,obj=sum_macros)
-            cursor.execute(query_str,in_tup)
-            result=cursor.fetchall()
-            conn.commit()
+            if bool(sum_macros):
+                query_str,in_tup=utils.query_strs('update',f'user_state_{tablename}','state_id',state_id,obj=sum_macros)
+                cursor.execute(query_str,in_tup)
+                result=cursor.fetchall()
+                conn.commit()
 
     else:
         print("No Post in Macros")
@@ -122,6 +123,11 @@ def user_state_an_x(state_id: int,x_state_info: schemas.StateX,tablename: str,op
     print(result)
     return result
 
-def subtract_dicts():
+def subtract_dicts(old: dict,new: dict):
     # figure out a way to subtract between two dicts, of different keys
-    return
+    result=dict()
+    for k,v in new.items():
+        if k in old.keys():
+            result[k]=old[k]-v
+
+    return result
