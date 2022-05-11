@@ -300,3 +300,19 @@ class StateX(BaseModel):
     vitamins: Optional[VitaminsBase]
     minerals: Optional[MineralsBase]
     meds: Optional[MedsBase]
+class GeneralFoodBase(BaseModel):
+    food_name: str
+    servings: float
+    total_cals: int
+    cals_per_serv: Optional[float]
+    brand_name: Optional[str]
+    ingredients: Optional[str]
+    serving_size_unit: Optional[str]
+    created_at: datetime=dt.datetime.now(dt.timezone.utc) 
+    state_id: Optional[int]
+class PostFood(BaseModel):
+    general: GeneralFoodBase
+    macros: Optional[MacrosBase]
+    vitamins: Optional[VitaminsBase]
+    minerals: Optional[MineralsBase]
+    traces: Optional[TracesBase]
