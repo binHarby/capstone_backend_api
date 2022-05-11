@@ -10,7 +10,7 @@ conn,cursor=database.run()
 router = APIRouter(
         prefix='/activity',
         tags=['activities'])
-@router.post("/", status_code=status.HTTP_201_CREATED,response_model=schemas.UserRes)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 
 def post_activity(get_current_user: dict):
     return get_current_user
