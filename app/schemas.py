@@ -279,11 +279,13 @@ class PostGeneralGoal(BaseModel):
     activity_lvl: int
     cal_diff: int =0
     cal_goal: Optional[int]
+    control_lvl: Optional[str]='normal'
 class UpdateGeneralGoal(BaseModel):
     weight: int
     activity_lvl: Optional[int]
     cal_diff: Optional[int]
     cal_goal: Optional[int]
+    control_lvl: Optional[str]
 class GeneralState(BaseModel):
     day: datetime=dt.datetime.now(dt.timezone.utc) 
     calories_consumed: Optional[int]=0

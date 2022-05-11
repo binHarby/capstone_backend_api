@@ -64,6 +64,8 @@ def update_general_goals(general_info: schemas.UpdateGeneralGoal, get_current_us
             general_info['activity_lvl']=qu2['activity_lvl']
         if 'cal_diff' not in general_info.keys():
             general_info['cal_diff']=qu2['cal_diff']
+        if 'control_lvl' not in general_info.keys():
+            general_info['control_lvl']=qu2['control_lvl']
         # calculate tdee, bmi and cal_goal
         tdee=utils.get_tdee(query['gender'],general_info['weight'],query['height'],query['age'],general_info['activity_lvl'])
         bmi=utils.get_bmi(general_info['weight'],query['height'])
@@ -89,7 +91,7 @@ def get_general_goals(get_current_user: int = Depends(oauth.get_current_user)):
     if result:
         return ORJSONResponse(result)
     else:
-        raise HTTPException(status_code=403, detail=f"No General Goals entry f    or this user")
+        raise HTTPException(status_code=403, detail=f"No General Goals entry for this user")
 
     
 
@@ -271,3 +273,35 @@ def update_x_goals(get_current_user: int = Depends(oauth.get_current_user)):
     return ORJSONResponse(final_results) 
 
 
+@router.get("/x",status_code=status.HTTP_201_CREATED) 
+def get_x_goals(get_current_user: int = Depends(oauth.get_current_user)):
+    result=dict()
+    cursor.execute('''SELECT * FROM user_goal_macros WHERE user_id=%s''',(get_current_user.id,))
+    result['macros']=cursor.fetchone()
+    if result['macros']:
+        result['macros'].pop('user_id')
+        result['macros']={k:v for k,v in result['macros'].items() if v}
+    if not bool(result['macros']):
+        result['macros']=None
+    cursor.execute('''SELECT * FROM user_goal_minerals WHERE user_id=%s''',(get_current_user.id,))
+    result['minerals']=cursor.fetchone()
+    if result['minerals']:
+        result['minerals'].pop('user_id')
+        result['minerals']={k:v for k,v in result['minerals'].items() if v}
+    if not bool(result['minerals']):
+        result['minerals']=None
+    cursor.execute('''SELECT * FROM user_goal_vitamins WHERE user_id=%s''',(get_current_user.id,))
+    result['vitamins']=cursor.fetchone()
+    if result['vitamins']:
+        result['vitamins'].pop('user_id')
+        result['vitamins']={k:v for k,v in result['vitamins'].items() if v}
+    if not bool(result['vitamins']):
+        result['vitamins']=None
+    cursor.execute('''SELECT * FROM user_goal_traces WHERE user_id=%s''',(get_current_user.id,))
+    result['traces']=cursor.fetchone()
+    if result['traces']:
+        result['traces'].pop('user_id')
+        result['traces']={k:v for k,v in result['traces'].items() if v}
+    if not bool(result['traces']):
+        result['traces']=None
+    return result
