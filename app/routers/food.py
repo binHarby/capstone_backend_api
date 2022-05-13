@@ -69,6 +69,7 @@ def update_user_food(food_info: schemas.FoodBase,get_current_user: int = Depends
     # lookup food by food_entry_id
     #if food exists, continue, other wise raise error 403
     # exculde unset from food_info,update the ones set on the query result
+    # {old_data}.update(new_data)
     # update to each table with the final query
 #Update
 #Delete
