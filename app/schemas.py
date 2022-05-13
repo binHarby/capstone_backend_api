@@ -301,16 +301,18 @@ class StateX(BaseModel):
     minerals: Optional[MineralsBase]
     meds: Optional[MedsBase]
 class GeneralFoodBase(BaseModel):
-    food_name: str
-    servings: float
-    total_cals: int
-    cals_per_serv: Optional[float]
+    food_name: str=''
+    servings: Optional[float]=1
+    servings_taken: int=1
+    total_cals: int=0
+    cals_per_serv: Optional[float]=0
     brand_name: Optional[str]
     ingredients: Optional[str]
     serving_size_unit: Optional[str]
-    created_at: datetime=dt.datetime.now(dt.timezone.utc) 
     state_id: Optional[int]
-class PostFood(BaseModel):
+    created_at: datetime=dt.datetime.now(dt.timezone.utc) 
+
+class FoodBase(BaseModel):
     general: GeneralFoodBase
     macros: Optional[MacrosBase]
     vitamins: Optional[VitaminsBase]
