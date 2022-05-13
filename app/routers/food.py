@@ -107,12 +107,25 @@ def update_user_food(food_info: schemas.FoodUpdate,get_current_user: int = Depen
             food_info=apply_servings_taken(b_result,op='update')
         else:
             food_info=schemas.FoodUpdate(**b_result)
-
+        #put to every table 
+        lss=['general','macros','minerals','vitamins','traces']
+        for x in lss:
+            
         
         return food_info
 
     else:
         raise HTTPException(status_code=403, detail=f"no such food_entry_id")
+
+def update_user_food_an_x(food_info: dict,tablename:str,food_entry_id: int):
+    #NEEDS EDITING
+    #CHANGE TO UPDATE
+    food_info['food_entry_id']=food_entry_id
+    query_str,in_tup=utils.query_strs('insert',f'user_food_{tablename}',obj=food_info)
+    cursor.execute(query_str,in_tup)
+    food_info=cursor.fetchone()
+    conn.commit()
+    return food_info
 def unapply_taken(food_info: dict):
     servings_taken=food_info['servings_taken']
     if 'general' in food_info.keys():
