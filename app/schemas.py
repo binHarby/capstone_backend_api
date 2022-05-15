@@ -318,3 +318,6 @@ class FoodBase(BaseModel):
     vitamins: Optional[VitaminsBase]
     minerals: Optional[MineralsBase]
     traces: Optional[TracesBase]
+class FoodUpdate(FoodBase):
+    food_entry_id: int 
+

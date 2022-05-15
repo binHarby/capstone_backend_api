@@ -6,6 +6,8 @@ from . import state
 from fastapi.responses import ORJSONResponse
 import orjson
 from collections import Counter
+from datetime import datetime
+import datetime as dt
 conn,cursor=database.run()
 router = APIRouter(
         prefix='/food',
@@ -185,4 +187,67 @@ def delete_food_entry(food_entry_id: int,get_current_user: int = Depends(oauth.g
 #Get
 @router.get("/",status_code=status.HTTP_201_CREATED)
 def get_a_food_entry(food_entry_id: int,get_current_user: int = Depends(oauth.get_current_user)):
-    return food_entry_id
+    f_result=dict()
+    cursor.execute('''SELECT * FROM user_food_general WHERE food_entry_id=%s''', (food_entry_id,))
+    f_result['general']=cursor.fetchone()
+    if 'general' in f_result.keys():
+        if f_result['general']['user_id']!=int(get_current_user.id):
+            raise HTTPException(status_code=403, detail=f"Forrbidden")
+
+        lss=['macros','minerals','vitamins','traces']
+        for x in lss:
+            cursor.execute(f'''SELECT * FROM user_food_{x} WHERE food_entry_id=%s''', (food_entry_id,))
+            f_result[x]=cursor.fetchone()
+    else:
+        raise HTTPException(status_code=403, detail=f"No such food entry")
+
+    return ORJSONResponse(f_result)
+def get_a_food_dict(food_entry_id: int,get_current_user: int = Depends(oauth.get_current_user)):
+    f_result=dict()
+    cursor.execute('''SELECT * FROM user_food_general WHERE food_entry_id=%s''', (food_entry_id,))
+    f_result['general']=cursor.fetchone()
+    if 'general' in f_result.keys():
+        if f_result['general']['user_id']!=int(get_current_user.id):
+            raise HTTPException(status_code=403, detail=f"Forrbidden")
+
+        lss=['macros','minerals','vitamins','traces']
+        for x in lss:
+            cursor.execute(f'''SELECT * FROM user_food_{x} WHERE food_entry_id=%s''', (food_entry_id,))
+            f_result[x]=cursor.fetchone()
+    else:
+        raise HTTPException(status_code=403, detail=f"No such food entry")
+    for k,v in f_result.items():
+        if v:
+            f_result[k]=dict(v)
+
+    return f_result
+
+@router.get("/history",status_code=status.HTTP_201_CREATED)
+def get_food_entries(get_current_user: int = Depends(oauth.get_current_user)):
+    f_result=list()
+    cursor.execute('''SELECT food_entry_id FROM user_food_general WHERE user_id=%s''', (get_current_user.id,))
+    result=cursor.fetchall()
+    if result:
+        lss=[x['food_entry_id'] for x in result]
+        for x in lss:
+            f_result.append(get_a_food_dict(x,get_current_user))
+        print(f_result)
+        print(type(f_result))
+    else:
+        raise HTTPException(status_code=403, detail=f"No such food entries for the user")
+    return ORJSONResponse(f_result)
+
+@router.get("/date",status_code=status.HTTP_201_CREATED)
+def get_food_entries(date: str,get_current_user: int = Depends(oauth.get_current_user)):
+    f_result=list()
+    date1=datetime.combine(datetime.fromisoformat(date),datetime.min.time())
+    date2=datetime.combine(datetime.fromisoformat(date),datetime.max.time())
+    cursor.execute('''SELECT food_entry_id FROM user_food_general WHERE user_id=%s AND created_at BETWEEN %s AND %s''', (get_current_user.id,date1,date2))
+    result=cursor.fetchall()
+    if result:
+        lss=[x['food_entry_id'] for x in result]
+        for x in lss:
+            f_result.append(get_a_food_dict(x,get_current_user))
+    else:
+        raise HTTPException(status_code=403, detail=f"No such food entries for the user")
+    return ORJSONResponse(f_result)
