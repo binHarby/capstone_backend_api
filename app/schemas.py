@@ -327,3 +327,9 @@ class PostActivity(BaseModel):
     cals_burned: Optional[int]=0
     created_at: datetime=dt.datetime.now(dt.timezone.utc) 
     state_id: Optional[int]
+class UpdateActivity(BaseModel):
+    activity_id: int
+    name: Optional[str]
+    duration: Optional[str]
+    cals_burned: Optional[int]
+    state_id: Optional[int]

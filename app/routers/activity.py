@@ -30,7 +30,21 @@ def post_activity(activity_info: schemas.PostActivity, get_current_user: int = D
    #user_activities_general 
     return result
 #Update
+@router.put("/", status_code=status.HTTP_201_CREATED)
 
+def put_activity(activity_info: schemas.UpdateActivity, get_current_user: int = Depends(oauth.get_current_user)):
+    activity_info=activity_info.dict(exclude_none=True)
+    activity_id=activity_info.pop('activity_id')
+    query_str,in_tup=utils.query_strs('update','user_activities_general','activity_id',activity_id,obj=activity_info)
+    cursor.execute(query_str,in_tup)
+    result=cursor.fetchone()
+    conn.commit()
+    return result
 #Delete
+@router.put("/", status_code=status.HTTP_201_CREATED)
+
+def delete_activity(activity_id: int, get_current_user: int = Depends(oauth.get_current_user)):
+    return activity_id
+
 
 #Get
