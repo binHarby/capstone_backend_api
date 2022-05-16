@@ -2,7 +2,7 @@
 from fastapi import FastAPI,Response,status,HTTPException 
 from typing import List
 from . import schemas, utils, database
-from .routers import user,login,history,res,exapi,goal,ai,state,food,med,recommendation,activity
+from .routers import user,login,res,exapi,goal,ai,state,food,med,recommendation,activity
 from datetime import date,datetime
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,7 +27,6 @@ async def root():
     return {"message": "Hello Capstone!"}
 app.include_router(user.router)
 app.include_router(login.router)
-app.include_router(history.router)
 app.include_router(res.router)
 app.include_router(exapi.router)
 app.include_router(goal.router)

@@ -320,4 +320,10 @@ class FoodBase(BaseModel):
     traces: Optional[TracesBase]
 class FoodUpdate(FoodBase):
     food_entry_id: int 
-
+## Activities
+class PostActivity(BaseModel):
+    name: str
+    duration: str
+    cals_burned: Optional[int]=0
+    created_at: datetime=dt.datetime.now(dt.timezone.utc) 
+    state_id: Optional[int]
