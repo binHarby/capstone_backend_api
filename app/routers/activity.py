@@ -6,6 +6,7 @@ from . import res,user,state
 from fastapi.responses import ORJSONResponse
 import orjson
 from collections import Counter
+from datetime import datetime
 conn,cursor=database.run()
 router = APIRouter(
         prefix='/activity',
@@ -57,3 +58,44 @@ def delete_activity(activity_id: int, get_current_user: int = Depends(oauth.get_
 
 
 #Get
+
+@router.get("/", status_code=status.HTTP_201_CREATED)
+
+def get_activity(activity_id: int, get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_activities_general WHERE user_id=%s AND activity_id=%s''',(get_current_user.id,activity_id))
+    result=cursor.fetchone()
+    if result:
+        return ORJSONResponse(result)
+    else:
+       raise HTTPException(status_code=403, detail=f"Forbbiden") 
+
+def get_activity_dict(activity_id: int, get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_activities_general WHERE user_id=%s AND activity_id=%s''',(get_current_user.id,activity_id))
+    result=cursor.fetchone()
+    if result:
+        return result
+    else:
+       raise HTTPException(status_code=403, detail=f"Forbbiden") 
+
+@router.get("/history", status_code=status.HTTP_201_CREATED)
+
+def get_activity_history(get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_activities_general WHERE user_id=%s ''',(get_current_user.id,))
+    result=cursor.fetchall()
+    if result:
+        return ORJSONResponse(result)
+    else:
+       raise HTTPException(status_code=403, detail=f"No record of activities for this user") 
+
+@router.get("/date", status_code=status.HTTP_201_CREATED)
+
+def get_activity_history(date: str,get_current_user: int = Depends(oauth.get_current_user)):
+    date1=datetime.combine(datetime.fromisoformat(date),datetime.min.time())
+    date2=datetime.combine(datetime.fromisoformat(date),datetime.max.time())
+    cursor.execute('''SELECT * FROM user_activities_general WHERE user_id=%s AND created_at BETWEEN %s AND %s''', (get_current_user.id,date1,date2))
+    result=cursor.fetchall()
+    if result:
+        return ORJSONResponse(result)
+    else:
+       raise HTTPException(status_code=403, detail=f"No record of activities for this user") 
+    
