@@ -41,9 +41,18 @@ def put_activity(activity_info: schemas.UpdateActivity, get_current_user: int = 
     conn.commit()
     return result
 #Delete
-@router.put("/", status_code=status.HTTP_201_CREATED)
+@router.delete("/", status_code=status.HTTP_201_CREATED)
 
 def delete_activity(activity_id: int, get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_activities_general WHERE user_id=%s AND activity_id=%s''',(get_current_user.id,activity_id))
+    result=cursor.fetchone()
+    if result:
+       cursor.execute('''DELETE FROM user_activities_general WHERE activity_id=%s RETURNING *''',(activity_id,)) 
+       result=cursor.fetchone()
+       conn.commit()
+
+    else:
+       raise HTTPException(status_code=403, detail=f"Forbbiden") 
     return activity_id
 
 
