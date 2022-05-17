@@ -351,3 +351,16 @@ class UpdateMed(BaseModel):
     dose_quant: Optional[int]
     dose_quant_type: Optional[str]
 
+class PostDailyMed(BaseModel):
+    doses_taken: int
+    med_id: int
+    state_id: Optional[int]
+    updated_at: datetime=dt.datetime.now(dt.timezone.utc) 
+
+class UpdateDailyMed(BaseModel):
+    doses_taken: int
+    med_id: int
+    state_id: Optional[int]
+    updated_at: datetime=dt.datetime.now(dt.timezone.utc) 
+
+ 
