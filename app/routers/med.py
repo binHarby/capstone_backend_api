@@ -134,7 +134,7 @@ def update_daily_med(med_info: schemas.UpdateDailyMed,get_current_user: int = De
     return result
 #delete user med_delta
 @router.delete("/daily", status_code=status.HTTP_201_CREATED)
-def delete_daily_med(med_id: int,state_id: Optional[int],get_current_user: int = Depends(oauth.get_current_user)):
+def delete_daily_med(med_id: int,state_id: Optional[int]=None,get_current_user: int = Depends(oauth.get_current_user)):
     if not state_id:
         obj=dict()
         result=state.user_state_general(schemas.GeneralState(**obj),get_current_user)
@@ -149,7 +149,7 @@ def delete_daily_med(med_id: int,state_id: Optional[int],get_current_user: int =
 
 
 @router.get("/daily", status_code=status.HTTP_201_CREATED)
-def get_daily_med(med_id: int,state_id: Optional[int],get_current_user: int = Depends(oauth.get_current_user)):
+def get_daily_med(med_id: int,state_id: Optional[int]=None,get_current_user: int = Depends(oauth.get_current_user)):
     if not state_id:
         obj=dict()
         result=state.user_state_general(schemas.GeneralState(**obj),get_current_user)
@@ -158,3 +158,4 @@ def get_daily_med(med_id: int,state_id: Optional[int],get_current_user: int = De
     result=cursor.fetchone()
     if not result:
         raise HTTPException(status_code=403, detail=f"Med Delta Not Posted")
+    return result
