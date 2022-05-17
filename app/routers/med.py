@@ -10,7 +10,11 @@ conn,cursor=database.run()
 router = APIRouter(
         prefix='/med',
         tags=['Medications'])
+#Post
 @router.post("/", status_code=status.HTTP_201_CREATED)
 
 def post_med(get_current_user: dict):
     return get_current_user
+#Update
+#Delete
+#Get

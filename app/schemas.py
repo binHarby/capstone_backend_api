@@ -333,3 +333,27 @@ class UpdateActivity(BaseModel):
     duration: Optional[str]
     cals_burned: Optional[int]
     state_id: Optional[int]
+class PostMed(BaseModel):
+    med_name: str
+    res_name: str
+    res_id: Optional[int]
+    daily_doses: Optional[int]=1
+    dose_quant: Optional[int]=1
+    dose_quant_type: Optional[str]='pill'
+    created_at: datetime=dt.datetime.now(dt.timezone.utc) 
+
+class UpdateMed(BaseModel):
+    med_id: int
+    med_name: Optional[str]
+    res_name: Optional[str]
+    res_id: Optional[int]
+    daily_doses: Optional[int]
+    dose_quant: Optional[int]
+    dose_quant_type: Optional[str]
+    @validator('res_name',always=True)
+    def check_name_or_id(cls,res_name,values):
+        if not values.get('res_id') and not res_name:
+            raise ValueError('Either res_id or res_name must be given')
+
+        return res_name
+
