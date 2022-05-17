@@ -52,5 +52,17 @@ def update_med(med_info: schemas.UpdateMed,get_current_user: int = Depends(oauth
     conn.commit()
     return result
 #Delete
+@router.delete("/", status_code=status.HTTP_201_CREATED)
+def delete_med(med_id: int,get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_meds_general WHERE med_id=%s AND user_id=%s''',(med_id,get_current_user.id))
+    result=cursor.fetchone()
+    if result:
+        cursor.execute('''DELETE FROM user_meds_general WHERE med_id=%s RETURNING *''',(med_id,))
+        result=cursor.fetchone()
+        conn.commit()
+    else:
+        raise HTTPException(status_code=403, detail=f"Forbbiden")
+    return result
+
 
 #Get
