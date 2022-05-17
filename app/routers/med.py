@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from fastapi import FastAPI, Response, status, HTTPException, APIRouter, Depends
-from typing import List
+from typing import List,Optional
 from .. import schemas, utils, database,oauth,rules_book
 from . import res,user,state
 from fastapi.responses import ORJSONResponse
@@ -132,7 +132,29 @@ def update_daily_med(med_info: schemas.UpdateDailyMed,get_current_user: int = De
     result=cursor.fetchone()
     conn.commit()
     return result
+#delete user med_delta
+@router.delete("/daily", status_code=status.HTTP_201_CREATED)
+def delete_daily_med(med_id: int,state_id: Optional[int],get_current_user: int = Depends(oauth.get_current_user)):
+    if not state_id:
+        obj=dict()
+        result=state.user_state_general(schemas.GeneralState(**obj),get_current_user)
+        state_id=orjson.loads(result.body)[0]['state_id']
+    cursor.execute('''SELECT * FROM user_meds_delta WHERE state_id=%s AND med_id=%s''',(state_id,med_id))
+    result=cursor.fetchone()
+    if not result:
+        raise HTTPException(status_code=403, detail=f"Med Delta Not Posted")
+    cursor.execute('''DELETE FROM user_meds_delta WHERE state_id=%s AND med_id=%s RETURNING *''',(state_id,med_id))
+    result=cursor.fetchone()
+    return result
 
 
-
-
+@router.get("/daily", status_code=status.HTTP_201_CREATED)
+def get_daily_med(med_id: int,state_id: Optional[int],get_current_user: int = Depends(oauth.get_current_user)):
+    if not state_id:
+        obj=dict()
+        result=state.user_state_general(schemas.GeneralState(**obj),get_current_user)
+        state_id=orjson.loads(result.body)[0]['state_id']
+    cursor.execute('''SELECT * FROM user_meds_delta WHERE state_id=%s AND med_id=%s''',(state_id,med_id))
+    result=cursor.fetchone()
+    if not result:
+        raise HTTPException(status_code=403, detail=f"Med Delta Not Posted")

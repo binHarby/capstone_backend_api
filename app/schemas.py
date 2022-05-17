@@ -362,5 +362,4 @@ class UpdateDailyMed(BaseModel):
     med_id: int
     state_id: Optional[int]
     updated_at: datetime=dt.datetime.now(dt.timezone.utc) 
-
  
