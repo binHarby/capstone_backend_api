@@ -350,10 +350,4 @@ class UpdateMed(BaseModel):
     daily_doses: Optional[int]
     dose_quant: Optional[int]
     dose_quant_type: Optional[str]
-    @validator('res_name',always=True)
-    def check_name_or_id(cls,res_name,values):
-        if not values.get('res_id') and not res_name:
-            raise ValueError('Either res_id or res_name must be given')
-
-        return res_name
 
