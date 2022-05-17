@@ -66,3 +66,17 @@ def delete_med(med_id: int,get_current_user: int = Depends(oauth.get_current_use
 
 
 #Get
+@router.get("/", status_code=status.HTTP_201_CREATED)
+def get_med(med_id: int,get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_meds_general WHERE med_id=%s AND user_id=%s''',(med_id,get_current_user.id))
+    result=cursor.fetchone()
+    if not result:
+        raise HTTPException(status_code=403, detail=f"Forbbiden")
+    return result
+@router.get("/record", status_code=status.HTTP_201_CREATED)
+def get_all_med(get_current_user: int = Depends(oauth.get_current_user)):
+    cursor.execute('''SELECT * FROM user_meds_general WHERE user_id=%s''',(get_current_user.id,))
+    result=cursor.fetchall()
+    if not result:
+        raise HTTPException(status_code=403, detail=f"Forbbiden")
+    return result
