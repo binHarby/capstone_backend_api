@@ -22,24 +22,11 @@ def create_users(new_user: schemas.UserCreate):
     else:
         raise HTTPException(status_code=418, detail=f"Input Passwords Mismatch")
     age = utils.get_age(new_user.birthday)
-    #bmi = utils.get_bmi(new_user.weight,new_user.height)
-    #tdee = utils.get_tdee(new_user.gender,new_user.weight,new_user.height,age,new_user.activity)
-    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,height,age,created_at,updated_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
-        new_user.bloodtype,new_user.height,age,new_user.created_at,new_user.updated_at))
+    cursor.execute('''INSERT INTO users (gender,email,birthday,password,bloodtype,height,age,created_at,updated_at,first_name,last_name) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *''',(new_user.gender,new_user.email,new_user.birthday,new_user.password,
+        new_user.bloodtype,new_user.height,age,new_user.created_at,new_user.updated_at,new_user.first_name,new_user.last_name))
     new_user=cursor.fetchone()
     conn.commit()
     return ORJSONResponse(new_user)
-
-@router.get("/", status_code=status.HTTP_201_CREATED,response_model=List[schemas.UserRes])
-
-def get_users(get_current_user: int = Depends(oauth.get_current_user)):
-    
-    cursor.execute('''SELECT * FROM users''')
-    query=cursor.fetchall()
-    if query:
-        return ORJSONResponse(query)
-    else:
-        raise HTTPException(status_code=418, detail=f"no users exist")
 
 
 @router.delete("/", status_code=204)
@@ -56,6 +43,16 @@ def delete_user(user_info: schemas.UserDelete,get_current_user: int = Depends(oa
     else:
         return {"notsure":"why"}
 
+@router.get("/", status_code=status.HTTP_201_CREATED,response_model=List[schemas.UserRes])
+
+def get_user(get_current_user: int = Depends(oauth.get_current_user)):
+    
+    cursor.execute('''SELECT * FROM users WHERE id=%s''',(get_current_user.id,))
+    query=cursor.fetchone()
+    if query:
+        return ORJSONResponse(query)
+    else:
+        raise HTTPException(status_code=418, detail=f"user doesn't exist any more?")
 
 
 @router.put("/{id}", status_code=201)
@@ -95,14 +92,16 @@ def update_user(id: int , user_info: schemas.UserUpdate,get_current_user: int = 
     return ORJSONResponse(result)
         
 
+@router.get("/all", status_code=status.HTTP_201_CREATED,response_model=List[schemas.UserRes])
 
-@router.get("/single", status_code=status.HTTP_201_CREATED,response_model=List[schemas.UserRes])
-
-def get_user(get_current_user: int = Depends(oauth.get_current_user)):
+def get_users(get_current_user: int = Depends(oauth.get_current_user)):
     
-    cursor.execute('''SELECT * FROM users WHERE id=%s''',(get_current_user.id,))
+    cursor.execute('''SELECT * FROM users''')
     query=cursor.fetchall()
     if query:
         return ORJSONResponse(query)
     else:
-        raise HTTPException(status_code=418, detail=f"user doesn't exist any more?")
+        raise HTTPException(status_code=418, detail=f"no users exist")
+
+
+

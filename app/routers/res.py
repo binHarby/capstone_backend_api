@@ -176,8 +176,6 @@ def delete_user_rest(rest_info: schemas.DeleteUserRestReq, get_current_user: int
     return ORJSONResponse(rest_info)
 @router.get("/user_res", status_code=status.HTTP_201_CREATED)
 def get_user_rest(rest_info: schemas.GetUserRestReq, get_current_user: int = Depends(oauth.get_current_user)):
-    rest_unq_col='user_res_id'
-    rest_unq_val=rest_info.user_res_id
     if rest_info.alll:
         query_str,in_tup=utils.query_strs('get','user_res',get_all=True)
         query_str+=f"WHERE user_id=%s"

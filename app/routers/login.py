@@ -8,7 +8,7 @@ conn,cursor=database.run()
 def login(user_cred: OAuth2PasswordRequestForm = Depends()):
     cursor.execute('''SELECT * FROM USERS WHERE email = %s''',(user_cred.username,))
 
-    db_user=dict(cursor.fetchone())
+    db_user=cursor.fetchone()
 
     if not db_user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")

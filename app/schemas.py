@@ -8,6 +8,8 @@ class UserBase(BaseModel):
     email: EmailStr
 class UserRes(UserBase):
     id: int
+    first_name: str
+    last_name: str
     password: str
     gender: str
     birthday: date 
@@ -17,6 +19,8 @@ class UserRes(UserBase):
     created_at: datetime
     updated_at: datetime
 class UserCreate(UserBase):
+    first_name: str
+    last_name: str
     password: str
     gender:str
     confpassword: str
@@ -26,6 +30,8 @@ class UserCreate(UserBase):
     created_at: datetime=dt.datetime.now(dt.timezone.utc)
     updated_at: datetime=dt.datetime.now(dt.timezone.utc)
 class UserUpdate(BaseModel):
+    first_name: Optional[str]
+    last_name: Optional[str]
     email: Optional[EmailStr]
     password: Optional[str]
     gender: Optional[str]
@@ -288,7 +294,7 @@ class UpdateGeneralGoal(BaseModel):
     control_lvl: Optional[str]
 class GeneralState(BaseModel):
     day: datetime=dt.datetime.now(dt.timezone.utc) 
-    calories_consumed: Optional[int]=0
+    total_cals: Optional[int]=0
 class MedsBase(BaseModel):
     updated_at: datetime=dt.datetime.now(dt.timezone.utc) 
     doses_taken: Optional[int]=0
@@ -318,6 +324,7 @@ class FoodBase(BaseModel):
     vitamins: Optional[VitaminsBase]
     minerals: Optional[MineralsBase]
     traces: Optional[TracesBase]
+    meta: Optional[dict]
 class FoodUpdate(FoodBase):
     food_entry_id: int 
 ## Activities

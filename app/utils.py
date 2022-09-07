@@ -4,6 +4,13 @@ from datetime import date
 from typing import Optional
 import orjson
 import requests
+import os
+import io
+from pprint import pprint
+from PIL import Image
+import httpx
+import urllib
+
 pwd_context=CryptContext(schemes=[settings.pass_algo],deprecated="auto")
 def hash(password: str):
     return pwd_context.hash(password)
@@ -125,14 +132,14 @@ def upc_lookup_table(key: str):
         ans='saturated'
     elif key == 'nf_trans_fatty_acid':
         ans ='trans'
-    elif key == 'nf_servings_per_container':
-        ans ='servings'
+    #elif key == 'nf_servings_per_container':
+    #    ans ='servings'
     elif key == 'nf_serving_size_qty':
-        ans= 'serving_size'
+        ans= 'servings'
     elif key == 'nf_serving_size_unit':
         ans = 'serving_size_unit'
-    elif key == 'nf_serving_weight_grams':
-        ans = 'serving_weight'
+    #elif key == 'nf_serving_weight_grams':
+    #    ans = 'serving_weight'
     return ans
 def process_upc(obj: dict):
     # Skip errors, in utils raise http 404
@@ -148,7 +155,60 @@ def process_upc(obj: dict):
             if newk !='':
                 new_obj[newk]=v
         return new_obj
+def process_mama(obj):
+    obj=obj['top_results'][0]
+    lu_table={
+"calcium":"calcium",
+"saturatedFat": "saturated",
+"monounsaturatedFat": "monounsaturated",
+"sodium": "sodium",
+"totalFat": "fat",
+#"cholesterol": "cho",
+"iron": "iron",
+"polyunsaturatedFat": "polyunsaturated",
+"totalCarbs": "carb",
+"protein": "protein",
+"potassium": "potassium", 
+"vitaminA": "a",
+"vitaminC": "c",
+"calories": "total_cals",
+"sugars": "sugar",
+"name": "food_name",
+"brand":"brand_name"}
+    newobj=obj['nutrition'] 
+    multiple=obj['servingSizes'][0]['servingWeight']
+    unit_def=obj['servingSizes'][0]['unit']
 
+    tmpobj=dict()
+    score=0
+    measures=list()
+    for k,v in newobj.items():
+        if k in lu_table.keys():
+            newv=round(v*1000*multiple)
+            if lu_table[k] =='total_cals':
+                tmpobj[lu_table[k]]=v*multiple 
+            elif newv !=0:
+                tmpobj[lu_table[k]]=newv
+    newobj=dict()
+    if 'name' in obj.keys():
+        tmpobj['food_name']=obj.pop('name')
+    if 'brand' in obj.keys():
+        tmpobj['brand_name']=obj['brand']
+    if 'score' in obj.keys():
+        newobj['score']=obj.pop('score')
+    if 'servingSizes' in obj.keys():  
+        obj.pop('servingSizes')
+        newobj['serving_size_unit']=unit_def
+       # 
+       # newobj['measures']=obj.pop('servingSizes')
+       # newobj['measures']
+       # for x in newobj['measures']:
+       #     for k,v in x.items():
+       #         if k == 'servingWeight':
+       #             x[k]=round(v*1000)
+    obj=format_x(tmpobj)
+    obj['meta']=newobj
+    return obj
 def nutrix_upc(upc_code):
     url=settings.nutrix_upc_endp
     querystring = {"upc":str(upc_code)}
@@ -196,8 +256,8 @@ def name_lookup_table(key: str):
         ans='food_name'
     elif key=='nf_potassium':
         ans = 'potassium'
-    elif key == 'metadata':
-        ans='is_raw'
+    #elif key == 'metadata':
+    #    ans='is_raw'
     elif key == 'alt_measures':
         ans = 'measures'
     elif key == 'photo':
@@ -265,7 +325,7 @@ def process_name_api(obj: dict):
             newk=name_lookup_table(str(k))
             if newk !='':
                 new_obj[newk]=v
-        new_obj['is_raw']=new_obj['is_raw']['is_raw_food']
+        #new_obj['is_raw']=new_obj['is_raw']['is_raw_food']
         # removing null values in measures
         mea=new_obj['measures'] # a list of dicts
         for idx,obj in enumerate(mea):
@@ -297,4 +357,61 @@ def nutrix_name(name):
     par=orjson.loads(response.text)
     par=process_name_api(par)
     return par
+
+class FoodAI:
+    def __init__(self):
+        self.user_key = '6d44fe497a4a4733bb0b86014d64ee42'
+        #self.endpoint = os.environ.get("ENDPOINT", "https://api3.azumio.com/")
+        self.endpoint = "https://api-2445582032290.production.gw.apicast.io/"
+
+    def connect(self):
+        self.client = httpx.Client(http2=False)
+
+    def recognize(self, image, persistent=True):
+        headers = {
+            "Content-Type": "image/jpeg",
+            "Accept-Encoding": "gzip"
+        }
+
+        if persistent:
+            pp=os.path.join(self.endpoint, "v1/foodrecognition/full") + "?user_key=" +urllib.parse.quote(self.user_key)
+            print(pp)
+            foods = self.client.post(pp + "&top=1", content=image, headers=headers)
+        else:
+            foods = httpx.post(os.path.join(self.endpoint, "v1/foodrecognition/full") + "?user_key=" +
+                               urllib.parse.quote(self.user_key) + "&top=1", content=image, headers=headers)
+
+        j = foods.json()
+        pprint(j)
+        if "is_food" not in j:
+            raise BaseException("Failed request", j)
+
+        return j
+
+    def ping(self):
+        pong = self.client.get(self.endpoint)
+        print(pong.text[:100])
+
+def format_x(obj):
+    macros=['carb', 'sugar', 'fructose', 'lactose', 'protein', 'amino', 'fat', 'unsaturated', 'monounsaturated', 'polyunsaturated', 'saturated', 'fiber', 'trans']
+    vitamins=['b', 'b_1', 'b_2', 'b_3', 'b_8', 'b_5', 'b_6', 'b_7', 'b_12', 'choline', 'a', 'c', 'd', 'd_2', 'd_3', 'k_1', 'k_2', 'k_3', 'k', 'e']
+    traces=['boron', 'copper', 'selenium', 'maganese', 'fluorine', 'chromium', 'cobalt', 'iodine']
+    minerals=['calcium', 'phosphorus', 'magnesium', 'sodium', 'potassium', 'iron', 'zinc']
+    general=['food_name','servings','servings_taken','total_cals','cal_per_serv','brand_name','ingredients','serving_size_unit','score']
+    result=dict()
+    result['general'],result['macros'],result['vitamins']=dict(),dict(),dict()
+    result['traces'],result['minerals']=dict(),dict()
+    for k,v in obj.items():
+        if k in macros:
+            result['macros'][k]=v
+        elif k in vitamins:
+            result['vitamins'][k]=v
+        elif k in traces:
+            result['traces'][k]=v
+        elif k in macros:
+            result['minerals'][k]=v
+        elif k in general:
+            result['general'][k]=v
+    result={k:v for k,v in result.items() if v}
+    return result
 

@@ -21,14 +21,13 @@ def post_med(med_info: schemas.PostMed,get_current_user: int = Depends(oauth.get
         if result:
             med_info.res_id=result['id']
         else:
-            raise HTTPException(status_code=403, detail=f"No such restriction")
-    
+            return {"error": "sorry, no such illness in our database, this will be saved locally"}
+                
     cursor.execute('''SELECT * FROM user_meds_general WHERE med_name=%s AND user_id=%s''',(med_info.med_name,get_current_user.id))
     result=cursor.fetchone()
     if result:
-        raise HTTPException(status_code=403, detail=f"medication already posted")
-
-    # now, post to user_meds_general
+        return {"error":"Medication Already Posted"}
+            # now, post to user_meds_general
     med_info=med_info.dict(exclude_none=True)
     med_info['user_id']=get_current_user.id
     query_str,in_tup=utils.query_strs('insert','user_meds_general',obj=med_info)

@@ -13,7 +13,8 @@ router = APIRouter(
         tags=['User State'])
 @router.put("/",status_code=status.HTTP_201_CREATED)
 @router.post("/",status_code=status.HTTP_201_CREATED)
-def user_state_general(general_state_info: schemas.GeneralState,get_current_user: int = Depends(oauth.get_current_user)):
+def user_state_general(general_state_info: schemas.GeneralState,get_current_user: int = Depends(oauth.get_current_user)
+        ,op_input: Optional[str]='sum'):
     # Check if state of today exists
     today=general_state_info.day.date()
     cursor.execute('''SELECT * FROM user_state_general WHERE user_id=%s ORDER BY state_id DESC LIMIT 1''',(get_current_user.id,))
@@ -25,7 +26,10 @@ def user_state_general(general_state_info: schemas.GeneralState,get_current_user
         else:
             general_state_info=general_state_info.dict(exclude_none=True)
             general_state_info['state_id']=result['state_id']
-            general_state_info['calories_consumed']=result['calories_consumed']
+            if op_input=='sub':
+                general_state_info['total_cals']=result['total_cals']-general_state_info['total_cals']
+            else:
+                general_state_info['total_cals']=result['total_cals']+general_state_info['total_cals']
             result=update_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
     else:
         result=post_user_state_general(general_state_info=general_state_info,get_current_user=get_current_user)
@@ -72,7 +76,7 @@ def user_state_x(x_state_info: schemas.StateX, get_current_user: int = Depends(o
         f_result['traces']=user_state_an_x(result['state_id'],x_state_info,'traces',op=op_input)
 
 
-    return ORJSONResponse(f_result)
+    return f_result
 
 def user_state_an_x(state_id: int,x_state_info: schemas.StateX,tablename: str,op: str):
     
@@ -103,11 +107,10 @@ def user_state_an_x(state_id: int,x_state_info: schemas.StateX,tablename: str,op
                 #sum_macros=old_macros
                 #sum_macros=dict(set(old_macros.items()) - set(new_macros.items()))
                 sum_macros=subtract_dicts(old_macros,new_macros)
-                print(sum_macros)
             if bool(sum_macros):
                 query_str,in_tup=utils.query_strs('update',f'user_state_{tablename}','state_id',state_id,obj=sum_macros)
                 cursor.execute(query_str,in_tup)
-                result=cursor.fetchall()
+                result=cursor.fetchone()
                 conn.commit()
 
     else:
@@ -117,10 +120,9 @@ def user_state_an_x(state_id: int,x_state_info: schemas.StateX,tablename: str,op
         x_info['state_id']=state_id
         query_str,in_tup=utils.query_strs('insert',f'user_state_{tablename}',obj=x_info)
         cursor.execute(query_str,in_tup)
-        result = cursor.fetchall()
+        result = cursor.fetchone()
         conn.commit()
-    result={k:v for k,v in result[0].items() if v}
-    print(result)
+    result={k:v for k,v in result.items() if v}
     return result
 
 def subtract_dicts(old: dict,new: dict):
@@ -131,3 +133,11 @@ def subtract_dicts(old: dict,new: dict):
             result[k]=old[k]-v
 
     return result
+
+
+@router.post("/reset",status_code=status.HTTP_201_CREATED)
+def state_reset(get_current_user: int = Depends(oauth.get_current_user)):
+    state_id=user_state_general(schemas.GeneralState(**dict()),get_current_user)
+    state_id=orjson.loads(state_id.body)[0]['state_id']
+    cursor.execute('''DELETE FROM user_state_general WHERE state_id=%s''',(state_id,))
+    return dict()

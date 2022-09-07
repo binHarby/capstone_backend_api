@@ -8,6 +8,7 @@ import orjson
 from collections import Counter
 from datetime import datetime
 import datetime as dt
+import copy
 conn,cursor=database.run()
 router = APIRouter(
         prefix='/food',
@@ -17,19 +18,26 @@ router = APIRouter(
 def post_user_food(food_info: schemas.FoodBase,get_current_user: int = Depends(oauth.get_current_user)):
     f_result=dict()
     # if no state, get state
+    #saving user id
     user_id=get_current_user.id
     if not food_info.general.state_id:
+        #Get state id
         state_id=state.user_state_general(schemas.GeneralState(),get_current_user)
         state_id=orjson.loads(state_id.body)[0]['state_id']
         food_info.general.state_id=state_id
         print("got state_id from query/update")
     if food_info.general.servings_taken:
+        #apply servings taken to all the data
         food_info=apply_servings_taken(food_info.dict(exclude_none=True),food_info.general.servings_taken)
+    #get FoodBase  General as a dict
     general_info=food_info.general.dict(exclude_none=True)
+    # add user_id to that dict
     general_info['user_id']=user_id
+    # post it to user_food_general
     general_info=post_food_general(general_info)
+    #get the newly created food_entry_id
     food_entry_id=general_info['food_entry_id']
-    f_result['general']=general_info
+    #use the food_entry_id to post to user_food_Xs tables
     if food_info.macros:
         x_in=food_info.macros.dict(exclude_none=True)
         f_result['macros']=post_user_food_an_x(x_in,'macros',food_entry_id)
@@ -42,11 +50,19 @@ def post_user_food(food_info: schemas.FoodBase,get_current_user: int = Depends(o
     if food_info.traces:
         x_in=food_info.traces.dict(exclude_none=True)
         f_result['traces']=post_user_food_an_x(x_in,'traces',food_entry_id)
+    #Post/update to general state
+    print("input to general state:",general_info)
+    state.user_state_general(schemas.GeneralState(**general_info),get_current_user)
+    #post/update to state x
+    print("input to state_x",f_result)
+    state.user_state_x(schemas.StateX(**f_result),get_current_user)
+    f_result['general']=general_info
     return f_result
 def post_food_general(food_info: dict):
     query_str,in_tup=utils.query_strs('insert','user_food_general',obj=food_info)
     cursor.execute(query_str,in_tup)
     food_info=cursor.fetchone()
+    #update general user state
     conn.commit()
     return food_info
 def post_user_food_an_x(food_info: dict,tablename:str,food_entry_id: int):
@@ -55,6 +71,7 @@ def post_user_food_an_x(food_info: dict,tablename:str,food_entry_id: int):
     cursor.execute(query_str,in_tup)
     food_info=cursor.fetchone()
     conn.commit()
+    food_info.pop('food_entry_id')
     return food_info
 def apply_servings_taken(food_info: dict,servings: int,op:Optional[str]='post'):
     food_info={k:v for k,v in food_info.items() if v}
@@ -96,6 +113,15 @@ def update_user_food(food_info: schemas.FoodUpdate,get_current_user: int = Depen
         cursor.execute('''SELECT * FROM user_food_traces WHERE food_entry_id=%s''', (food_info.food_entry_id,))
         b_result['traces']=cursor.fetchone()
         b_result={k:dict(v) for k,v in b_result.items() if v }
+        #######################################################
+        #deep copy previous food_entry data
+        previous_state=dict()
+        previous_state['general']=copy.deepcopy(b_result['general'])
+        for k,v in b_result.items():
+            if v:
+                if k != 'general':
+                    previous_state[k]=copy.deepcopy(v)
+        ######################################################
         # unapply servings taken    
         if b_result['general']['servings_taken']>1:
             b_result=unapply_taken(b_result)
@@ -124,6 +150,7 @@ def update_user_food(food_info: schemas.FoodUpdate,get_current_user: int = Depen
         food_info=food_info.dict(exclude_none=True)
         food_id=food_info.pop('food_entry_id')
         general_info=food_info.pop('general')
+        # actual update command
         query_str,in_tup=utils.query_strs('update','user_food_general','food_entry_id',food_id,obj=general_info)
         print(query_str)
         print(in_tup)
@@ -133,6 +160,29 @@ def update_user_food(food_info: schemas.FoodUpdate,get_current_user: int = Depen
         lss=food_info.keys()
         for x in lss:
             f_result[x]=update_user_food_an_x(food_info[x],x,food_id)
+        #HERE we update state general and state x with sub op
+        #######################################################################
+        # actual state update
+        #delete old states 
+        #General state 1st
+        print("delete input to general state:",state_input)
+        state.user_state_general(schemas.GeneralState(**previous_state['general']),get_current_user,op_input='sub')
+        #X states 2nd
+        previous_state.pop('general')
+        print("delete input to state_x",previous_state)
+        state.user_state_x(schemas.StateX(**previous_state),get_current_user,op_input='sub')
+        ########################################################################
+        #HERE we update state general and state x with the NEW DATA sum op
+        #######################################################################
+        #actual state update
+        # update general state
+        gg=f_result.pop('general')
+        print("UPDATED input to general state:",state_input)
+        state.user_state_general(schemas.GeneralState(**gg),get_current_user)
+        #update state Xs
+        print("UPDATED input to state_x",previous_state)
+        state.user_state_x(schemas.StateX(**f_result),get_current_user)
+        f_result['general']=gg
 
         return f_result
 
@@ -140,6 +190,7 @@ def update_user_food(food_info: schemas.FoodUpdate,get_current_user: int = Depen
         raise HTTPException(status_code=403, detail=f"no such food_entry_id")
 
 def update_user_food_an_x(food_info: dict,tablename:str,food_entry_id: int):
+    #need to 2 update statex, 1- sub op_input, second new update
     #NEEDS EDITING
     #CHANGE TO UPDATE
     query_str,in_tup=utils.query_strs('update',f'user_food_{tablename}','food_entry_id',food_entry_id,obj=food_info)
@@ -173,7 +224,35 @@ def delete_food_entry(food_entry_id: int,get_current_user: int = Depends(oauth.g
     result=cursor.fetchone()
     if result:
         if result['user_id']==int(get_current_user.id):
-            # delete
+            # delete from state general
+            print("delete input to general state:",result)
+            state.user_state_general(schemas.GeneralState(**result),get_current_user,op_input='sub')
+            #need to update statex, sub op_input
+            #1 fetch data from all
+            b_result=dict()
+            cursor.execute('''SELECT * FROM user_food_macros WHERE food_entry_id=%s''', (food_info.food_entry_id,))
+            b_result['macros']=cursor.fetchone()
+            #not sure if nesscary, but deleting food_entry_id from StateXs returned queries
+            if b_result['macros']:
+                b_result['macros'].pop('food_entry_id')
+            cursor.execute('''SELECT * FROM user_food_minerals WHERE food_entry_id=%s''', (food_info.food_entry_id,))
+            b_result['minerals']=cursor.fetchone()
+            if b_result['minerals']:
+                b_result['minerals'].pop('food_entry_id')
+            cursor.execute('''SELECT * FROM user_food_vitamins WHERE food_entry_id=%s''', (food_info.food_entry_id,))
+            b_result['vitamins']=cursor.fetchone()
+            if b_result['vitamins']:
+                b_result['vitamins'].pop('food_entry_id')
+            cursor.execute('''SELECT * FROM user_food_traces WHERE food_entry_id=%s''', (food_info.food_entry_id,))
+            b_result['traces']=cursor.fetchone()
+            if b_result['traces']:
+                b_result['traces'].pop('food_entry_id')
+            # None values being taking out
+            b_result={k:dict(v) for k,v in b_result.items() if v }
+            # delete from stateXs
+            print("delete input to state_x",b_result)
+            state.user_state_x(schemas.StateX(**b_result),get_current_user,op_input='sub')
+            # delete the food entry by deleting it from user_food_general parent table
             cursor.execute('''DELETE FROM user_food_general WHERE food_entry_id=%s RETURNING *''',(food_entry_id,))
             result=cursor.fetchone()
             conn.commit()

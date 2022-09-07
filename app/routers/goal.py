@@ -43,7 +43,7 @@ def post_general_goals(general_info: schemas.PostGeneralGoal, get_current_user: 
         cursor.execute(query_str,in_tup)
         general_info=cursor.fetchall()
         conn.commit()
-        return ORJSONResponse(general_info)
+        return ORJSONResponse(general_info[0])
 
 @router.put("/",status_code=status.HTTP_201_CREATED) 
 def update_general_goals(general_info: schemas.UpdateGeneralGoal, get_current_user: int = Depends(oauth.get_current_user)):
@@ -82,14 +82,14 @@ def update_general_goals(general_info: schemas.UpdateGeneralGoal, get_current_us
         cursor.execute(query_str,in_tup)
         general_info=cursor.fetchall()
         conn.commit()
-        return ORJSONResponse(general_info)
+        return ORJSONResponse(general_info[0])
 
 @router.get("/",status_code=status.HTTP_201_CREATED) 
 def get_general_goals(get_current_user: int = Depends(oauth.get_current_user)):
     cursor.execute('''SELECT * FROM user_goal_general WHERE user_id=%s''',(get_current_user.id,))
     result=cursor.fetchone()
     if result:
-        return ORJSONResponse(result)
+        return dict(result)
     else:
         raise HTTPException(status_code=403, detail=f"No General Goals entry for this user")
 
@@ -156,7 +156,8 @@ def post_x_goals(get_current_user: int = Depends(oauth.get_current_user)):
     except Exception:
         conn.rollback()
         raise HTTPException(status_code=403, detail=f"X Goals entries have been posted for this user")
-    return ORJSONResponse(final_results) 
+    final_results = {k:v for k,v in final_results.items() if v}
+    return final_results
 
 def set_goal(get_current_user: int = Depends(oauth.get_current_user)):
     obj={"alll": True}
@@ -172,8 +173,8 @@ def set_goal(get_current_user: int = Depends(oauth.get_current_user)):
     # user general details
     user_info=user.get_user(get_current_user=get_current_user)
     user_general=get_general_goals(get_current_user=get_current_user)
-    user_info=orjson.loads(user_info.body)[0]
-    user_general=orjson.loads(user_general.body)
+    user_info=orjson.loads(user_info.body)
+    user_general=user_general
     # pass to method, get results for each restriction
     results=list()
     for i in user_res:
@@ -304,4 +305,6 @@ def get_x_goals(get_current_user: int = Depends(oauth.get_current_user)):
         result['traces']={k:v for k,v in result['traces'].items() if v}
     if not bool(result['traces']):
         result['traces']=None
-    return result
+
+    result = {k:v for k,v in result.items() if v}
+    return dict(result)
