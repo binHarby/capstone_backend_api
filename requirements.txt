@@ -142,7 +142,6 @@ pytest-runner==6.0.0
 pytest-shutil==1.7.0
 pytest-virtualenv==1.7.0
 python-dateutil==2.8.2
-python-distutils-extra==2.39
 python-dotenv==0.20.0
 python-jose==3.3.0
 python-multipart==0.0.5
