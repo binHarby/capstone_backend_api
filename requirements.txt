@@ -12,7 +12,6 @@ autocommand==2.2.1
 bcrypt==3.2.0
 beautifulsoup4==4.11.1
 breezy==3.2.2
-brotlicffi==1.0.9.2
 btrfsutil==5.19
 build==0.8.0
 CacheControl==0.12.11
