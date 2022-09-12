@@ -155,7 +155,7 @@ socksio==1.0.0
 sortedcontainers==2.4.0
 soupsieve==2.3.2.post1
 sqlparse==0.4.2
-starlette==0.17.1
+starlette==0.19.1
 stem==1.8.0
 stringcase==1.2.0
 tenacity==8.0.1
