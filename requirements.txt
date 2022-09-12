@@ -182,7 +182,7 @@ unicorn==2.0.0
 urllib3==1.26.12
 uvicorn==0.15.0
 uvloop==0.16.0
-validate==5.1.0.dev0
+validate==1.0.1
 validate-pyproject==0.10.1
 virtualenv==20.13.2
 waitress==2.1.2
