@@ -195,7 +195,6 @@ yarg==0.1.9
 zipp==3.8.1
 zope.event==4.5.0
 zope.interface==5.4.0
-python==3.10.7
 uvicorn[standard]==0.15.0
 fastapi==0.83.0
 httpx==0.23.0
