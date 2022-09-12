@@ -1,4 +1,3 @@
-
 uvicorn==0.9.0
 pgi==0.0.9
 anyio==3.5.0
@@ -33,8 +32,6 @@ email-validator==1.1.3
 execnet==1.9.0
 fastbencode==0.0.9
 filelock==3.8.0
-Flask==2.1.3
-Flask-Cors==3.0.10
 future==0.18.2
 gevent==21.12.0
 greenlet==1.1.2
