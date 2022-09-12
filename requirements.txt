@@ -165,7 +165,6 @@ sqlparse==0.4.2
 starlette==0.17.1
 stem==1.8.0
 stringcase==1.2.0
-team==1.0
 tenacity==8.0.1
 termcolor==2.0.0
 toml==0.10.2
