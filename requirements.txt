@@ -66,7 +66,6 @@ jsonpointer==2.3
 jsonschema==4.15.0
 keystone-engine==0.9.2
 keyutils==0.6
-libfdt==1.6.1
 libvirt-python==8.7.0
 lit==14.0.6.dev0
 louis==3.23.0
