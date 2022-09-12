@@ -149,7 +149,6 @@ udiskie==2.4.2
 ujson==4.3.0
 unicorn==2.0.0
 urllib3==1.26.12
-uvicorn==0.15.0
 uvloop==0.16.0
 validate-pyproject==0.10.1
 virtualenv==20.13.2
