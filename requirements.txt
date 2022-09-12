@@ -43,7 +43,7 @@ hpack==4.0.0
 html5lib==1.1
 httpcore==0.15.0
 httplib2==0.20.4
-httptools==0.1.0
+httptools
 httpx==0.23.0
 hyperframe==6.0.1
 idna==3.3
