@@ -8,8 +8,6 @@ argon2-cffi-bindings==21.2.0
 asgiref==3.5.2
 async-generator==1.10
 asyncio==3.4.3
-attrs==22.1.0
-auto-cpufreq==1.9.5
 autocommand==2.2.1
 bcrypt==3.2.0
 beautifulsoup4==4.11.1
