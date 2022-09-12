@@ -12,10 +12,7 @@ autocommand==2.2.1
 bcrypt==3.2.0
 beautifulsoup4==4.11.1
 breezy==3.2.2
-btrfsutil==5.19
-build==0.8.0
 CacheControl==0.12.11
-capstone==4.0.2
 certifi==2021.10.8
 cffi==1.15.1
 chardet==5.0.0
