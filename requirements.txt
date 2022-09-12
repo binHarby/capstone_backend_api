@@ -1,3 +1,4 @@
+pgi==0.0.9
 anyio==3.5.0
 fluidity-sm==0.2.0
 anytree==2.8.0
@@ -23,7 +24,6 @@ Cython==0.29.32
 decorator==5.1.1
 distlib==0.3.6
 distro==1.7.0
-Django==4.0.6
 dnspython==2.2.1
 docopt==0.6.2
 docutils==0.19
