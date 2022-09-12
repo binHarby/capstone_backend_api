@@ -156,7 +156,7 @@ waitress==2.1.2
 watchgod==0.8.2
 webcolors==1.12
 webencodings==0.5.1
-websockets==10.3
+websockets>10.3
 yarg==0.1.9
 zipp==3.8.1
 zope.event==4.5.0
