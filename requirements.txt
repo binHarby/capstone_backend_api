@@ -1,4 +1,5 @@
 anyio==3.5.0
+fluidity-sm==0.2.0
 anytree==2.8.0
 apipkg==3.0.1
 appdirs==1.4.4
@@ -36,7 +37,6 @@ fastbencode==0.0.9
 filelock==3.8.0
 Flask==2.1.3
 Flask-Cors==3.0.10
-fluidity-sm==0.2.1
 future==0.18.2
 gevent==21.12.0
 greenlet==1.1.2
