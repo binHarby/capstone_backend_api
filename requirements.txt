@@ -100,7 +100,6 @@ psutil==5.9.1
 psycopg2==2.9.3
 py==1.11.0
 pyasn1==0.4.8
-PyAudio==0.2.12
 pybind11==2.10.0
 pycairo==1.21.0
 pycparser==2.21
