@@ -3,7 +3,6 @@ from pydantic import BaseSettings,HttpUrl
 
 class Settings(BaseSettings):
     #importing settings from .env
-    fast_api_host: str
     db_host: str
     db_usr: str
     db_name: str
