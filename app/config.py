@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     db_name: str
     db_pass: str
     s_key: str
-    fast_api_port: int
     pass_algo: str
     varify_pass_algo: str
     nutrix_name_endp: str
