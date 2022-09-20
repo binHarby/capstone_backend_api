@@ -141,3 +141,21 @@ def state_reset(get_current_user: int = Depends(oauth.get_current_user)):
     state_id=orjson.loads(state_id.body)[0]['state_id']
     cursor.execute('''DELETE FROM user_state_general WHERE state_id=%s''',(state_id,))
     return dict()
+
+@router.get("/get", status_code=status.HTTP_201_CREATED)
+def state_get(get_current_user: int = Depends(oauth.get_current_user)):
+    result=dict()
+    state_id=user_state_general(schemas.GeneralState(**dict()),get_current_user)
+    state_id=orjson.loads(state_id.body)[0]['state_id']
+    cursor.execute('''SELECT * FROM user_state_general WHERE state_id=%s''',(state_id,))
+    result["general"]=cursor.fetchone()
+    cursor.execute('''SELECT * FROM user_state_macros WHERE state_id=%s''',(state_id,))
+    result["macros"]=cursor.fetchone()
+    cursor.execute('''SELECT * FROM user_state_minerals WHERE state_id=%s''',(state_id,))
+    result["minerals"]=cursor.fetchone()
+    cursor.execute('''SELECT * FROM user_state_vitamins WHERE state_id=%s''',(state_id,))
+    result["vitamins"]=cursor.fetchone()
+    cursor.execute('''SELECT * FROM user_state_traces WHERE state_id=%s''',(state_id,))
+    result["traces"]=cursor.fetchone()
+    return result
+
