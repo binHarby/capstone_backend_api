@@ -31,6 +31,8 @@ def post_name(new_rest: schemas.ExapiNameReq, get_current_user: int = Depends(oa
         serv_weight=rest_info.pop('serving_weight')
         photo=rest_info.pop('photo')
         measures=rest_info.pop('measures')
+        hashMap=rest_info.pop("hash_map",None)
+        calDiff=rest_info.pop("cals_diff",None)
         new_m=list()
         for x in measures:
             newdict=dict()
@@ -48,8 +50,12 @@ def post_name(new_rest: schemas.ExapiNameReq, get_current_user: int = Depends(oa
         rest_info['meta']["def_w"]=serv_weight
         rest_info['meta']['photo']=photo
         rest_info['meta']['measures']=measures
+        rest_info["hash_map"]=hashMap
+        rest_info["cals_diff"]=calDiff
 
     rest_info['recom']=recommendation(rest_info,get_current_user)
+    rest_info.pop("hash_map",None)
+    rest_info.pop("cals_diff",None)
     return ORJSONResponse(rest_info)
 @router.post("/upc", status_code=status.HTTP_201_CREATED)
 def post_upc(new_rest: schemas.ExapiUPCReq, get_current_user: int = Depends(oauth.get_current_user)):
@@ -57,6 +63,8 @@ def post_upc(new_rest: schemas.ExapiUPCReq, get_current_user: int = Depends(oaut
     if 'error' not in rest_info:
         rest_info=utils.format_x(rest_info)
         rest_info['recom']=recommendation(rest_info,get_current_user)
+        rest_info.pop("hash_map",None)
+        rest_info.pop("cals_diff",None)
 
     return ORJSONResponse(rest_info)
 
@@ -100,6 +108,13 @@ async def post_image(request: Request,file: UploadFile=File(...),get_current_use
     return resp
 def recommendation(obj:dict, get_current_user: int = Depends(oauth.get_current_user)):
     #obj is the food
+    lvlValues={"normal":1,"controlled":0.8,"uncontrolled": 0.65}
+    hashMap=obj["hash_map"]
+    calDiff=obj["cals_diff"]
+    obj.pop("hash_map",None)
+    obj.pop("cals_diff",None)
+
+
     #obj2 is user state
     obj2=dict()
     obj2['general']=state.user_state_general(schemas.GeneralState(),get_current_user)
@@ -117,6 +132,36 @@ def recommendation(obj:dict, get_current_user: int = Depends(oauth.get_current_u
         obj2['minerals']=tempObj['minerals']
     if 'traces' in tempObj.keys():
         obj2['traces']=tempObj['traces']
+    ## adjusting for hashmap and calDiff
+    # if hashmap not null, get level, compare it to the levelsValues
+    #then change carb, and calories
+    if hashMap:
+        #new carb
+        tmp=obj2["macros"]["carb"]
+        obj2["macros"]["carb"]=obj2["macros"]["carb"]*lvlValues[hashMap["diabetes"]]
+        carbDiff=tmp-obj2["macros"]["carb"]
+        #new calories
+        #NOTE:each carb gram is 4 calories
+        carbCalDiff=carbDiff*4
+        obj2["general"]["total_cals"]=obj2["general"]["total_cals"]-carbCalDiff
+        #new sodium 
+
+        obj2["minerals"]["sodium"]=obj2["minerals"]["sodium"]*lvlValues[hashMap["blood_preasure"]]
+    if calDiff:
+        # add cals burned to carbs and sodium 
+        # sodium has no cals, keep in mind
+        #TODO: make sure hashmap and caldiff stay in recommendation input but not in final output
+        #TODO2: set new values for sodium and cals based od calDiff
+        
+        calInGrams=calDiff/4
+        tmp=obj2["macros"]["carb"]
+        obj2["macros"]["carb"]=obj2["macros"]["carb"]+(calInGrams*0.5)
+        #new calories
+        #NOTE:each carb gram is 4 calories
+        carbCalDiff=calDiff*0.5
+        obj2["general"]["total_cals"]=obj2["general"]["total_cals"]+carbCalDiff
+
+        obj2["minerals"]["sodium"]=obj2["minerals"]["sodium"]+(calInGrams*0.5)
     print(f"obj: {obj}")
     print(f"obj2: {obj2}")
     #obj3 is user goals
